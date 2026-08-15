@@ -1,3 +1,4 @@
+from utils.dialogs import select_folder
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QFrame,
@@ -25,6 +26,7 @@ class MainWindow(QMainWindow):
         self.resize(1000, 650)
 
         self._create_ui()
+        self.browse_button.clicked.connect(self.choose_folder)
 
     def _create_ui(self):
         toolbar = QToolBar("Main")
@@ -99,3 +101,9 @@ class MainWindow(QMainWindow):
         button_row.addWidget(self.download_button)
 
         root.addLayout(button_row)
+
+    def choose_folder(self):
+        folder = select_folder(self)
+
+        if folder:
+            self.folder_edit.setText(folder)
