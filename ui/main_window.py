@@ -1,7 +1,14 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMainWindow,
+    QPushButton,
+    QProgressBar,
+    QPlainTextEdit,
     QSizePolicy,
     QStatusBar,
     QToolBar,
@@ -31,28 +38,64 @@ class MainWindow(QMainWindow):
         central = QWidget()
         self.setCentralWidget(central)
 
-        layout = QVBoxLayout(central)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        root = QVBoxLayout(central)
+        root.setContentsMargins(25, 20, 25, 20)
+        root.setSpacing(18)
 
         title = QLabel("ChapterSplit")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
         font = title.font()
         font.setPointSize(24)
         font.setBold(True)
         title.setFont(font)
 
-        subtitle = QLabel(
-            "Smart YouTube Chapter Downloader"
-        )
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle = QLabel("Smart YouTube Chapter Downloader")
 
-        subtitle.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.Fixed,
-        )
+        root.addWidget(title)
+        root.addWidget(subtitle)
 
-        layout.addStretch()
-        layout.addWidget(title)
-        layout.addWidget(subtitle)
-        layout.addStretch()
+        form = QFrame()
+        layout = QGridLayout(form)
+        layout.setVerticalSpacing(15)
+        layout.setHorizontalSpacing(10)
+
+        self.url_edit = QLineEdit()
+        self.url_edit.setPlaceholderText("Paste YouTube URL...")
+
+        self.folder_edit = QLineEdit()
+        self.folder_edit.setPlaceholderText("Choose output folder...")
+
+        self.browse_button = QPushButton("Browse")
+
+        folder_layout = QHBoxLayout()
+        folder_layout.addWidget(self.folder_edit)
+        folder_layout.addWidget(self.browse_button)
+
+        self.progress = QProgressBar()
+        self.progress.setValue(0)
+
+        self.log = QPlainTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setPlaceholderText("Logs will appear here...")
+
+        self.download_button = QPushButton("Download")
+
+        layout.addWidget(QLabel("YouTube URL"), 0, 0)
+        layout.addWidget(self.url_edit, 1, 0)
+
+        layout.addWidget(QLabel("Output Folder"), 2, 0)
+        layout.addLayout(folder_layout, 3, 0)
+
+        layout.addWidget(QLabel("Progress"), 4, 0)
+        layout.addWidget(self.progress, 5, 0)
+
+        layout.addWidget(QLabel("Logs"), 6, 0)
+        layout.addWidget(self.log, 7, 0)
+
+        root.addWidget(form)
+        root.addStretch()
+
+        button_row = QHBoxLayout()
+        button_row.addStretch()
+        button_row.addWidget(self.download_button)
+
+        root.addLayout(button_row)
