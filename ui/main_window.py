@@ -1,3 +1,4 @@
+from core.downloader import Downloader
 from utils.dialogs import select_folder
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
 
         self._create_ui()
         self.browse_button.clicked.connect(self.choose_folder)
+        self.download_button.clicked.connect(self.start_download)
 
     def _create_ui(self):
         toolbar = QToolBar("Main")
@@ -107,3 +109,39 @@ class MainWindow(QMainWindow):
 
         if folder:
             self.folder_edit.setText(folder)
+
+    def start_download(self):
+        url = self.url_edit.text().strip()
+        folder = self.folder_edit.text().strip()
+
+        self.log.clear()
+
+        if not url:
+            self.log.appendPlainText("Please enter a YouTube URL.")
+            return
+
+        if not folder:
+            self.log.appendPlainText("Please choose an output folder.")
+            return
+
+        self.download_button.setEnabled(False)
+        self.download_button.setText("Downloading...")
+
+        self.log.appendPlainText("Starting download...")
+        self.progress.setRange(0, 0)
+
+        downloader = Downloader(folder)
+
+        success, message = downloader.download(url)
+
+        self.progress.setRange(0, 100)
+
+        if success:
+            self.progress.setValue(100)
+        else:
+            self.progress.setValue(0)
+
+        self.log.appendPlainText(message)
+
+        self.download_button.setEnabled(True)
+        self.download_button.setText("Download")
