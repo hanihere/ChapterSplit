@@ -1,3 +1,5 @@
+from PySide6.QtCore import Qt, QThread
+from core.worker import DownloadWorker
 from core.downloader import Downloader
 from utils.dialogs import select_folder
 from PySide6.QtCore import Qt
@@ -127,13 +129,29 @@ class MainWindow(QMainWindow):
         self.download_button.setEnabled(False)
         self.download_button.setText("Downloading...")
 
-        self.log.appendPlainText("Starting download...")
         self.progress.setRange(0, 0)
+        self.log.clear()
 
         downloader = Downloader(folder)
 
-        success, message = downloader.download(url)
+        self.thread = QThread()
+        self.worker = DownloadWorker(downloader, url)
 
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+
+        self.worker.log.connect(self.log.appendPlainText)
+
+        self.worker.finished.connect(self.download_finished)
+
+        self.worker.finished.connect(self.thread.quit)
+
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.finished.connect(self.worker.deleteLater)
+
+        self.thread.start()
+    def download_finished(self, success, message):
         self.progress.setRange(0, 100)
 
         if success:
