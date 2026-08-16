@@ -2,8 +2,7 @@ from PySide6.QtCore import QObject, Signal
 
 
 class DownloadWorker(QObject):
-    finished = Signal(bool)
-    progress = Signal(int)
+    finished = Signal(bool, str)
     log = Signal(str)
 
     def __init__(self, downloader, url):
@@ -12,12 +11,11 @@ class DownloadWorker(QObject):
         self.url = url
 
     def run(self):
-        self.log.emit("Starting download...")
-
-        success = self.downloader.download(
+        success, message = self.downloader.download(
             self.url,
-            progress_callback=self.progress.emit,
             log_callback=self.log.emit,
         )
 
-        self.finished.emit(success)
+        print("EMITTING:", success, message)
+        self.finished.emit(success, message)
+        print("EMITTED")

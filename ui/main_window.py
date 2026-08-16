@@ -129,6 +129,8 @@ class MainWindow(QMainWindow):
         self.download_button.setEnabled(False)
         self.download_button.setText("Downloading...")
 
+        self.statusBar().showMessage("Downloading...")
+
         self.progress.setRange(0, 0)
         self.log.clear()
 
@@ -152,10 +154,15 @@ class MainWindow(QMainWindow):
 
         self.thread.start()
     def download_finished(self, success, message):
+        print("=== DOWNLOAD FINISHED ===")
+        print(success)
+        print(message)
+
         self.progress.setRange(0, 100)
 
         if success:
             self.progress.setValue(100)
+            self.statusBar().showMessage("Ready")
         else:
             self.progress.setValue(0)
 

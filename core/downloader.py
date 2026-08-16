@@ -7,22 +7,15 @@ class Downloader:
         self.output_folder = Path(output_folder)
 
     def download(
-    self,
-    url: str,
-    progress_callback=None,
-    log_callback=None,
-):
-        if log_callback:
-         log_callback("Preparing download...")
-
-        if progress_callback:
-            progress_callback(5)
-
+        self,
+        url: str,
+        progress_callback=None,
+        log_callback=None,
+    ):
         if not url.strip():
             return False, "Please enter a YouTube URL."
 
-        if not self.output_folder.exists():
-            self.output_folder.mkdir(parents=True, exist_ok=True)
+        self.output_folder.mkdir(parents=True, exist_ok=True)
 
         command = [
             "yt-dlp",
@@ -38,22 +31,58 @@ class Downloader:
         ]
 
         try:
+            if progress_callback:
+                progress_callback(5)
+
             if log_callback:
-                log_callback("Downloading and splitting...")
-            result = subprocess.run(
-    command,
-    cwd=self.output_folder,
-)
+                log_callback("Starting yt-dlp...")
+
+            process = subprocess.Popen(
+                command,
+                cwd=self.output_folder,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+
+            last_status = ""
+
+            for line in process.stdout:
+                line = line.strip()
+
+                if not line:
+                    continue
+
+                status = None
+
+                if "[youtube]" in line:
+                    status = "🔍 Analyzing video..."
+
+                elif "[download]" in line:
+                    status = "⬇ Downloading audio..."
+
+                elif "ExtractAudio" in line:
+                    status = "🎵 Converting to MP3..."
+
+                elif "SplitChapters" in line:
+                    status = "✂ Splitting chapters..."
+
+                elif "Deleting original file" in line:
+                    status = "🧹 Cleaning up..."
+
+                if status and status != last_status:
+                    last_status = status
+
+                    if log_callback:
+                        log_callback(status)
+
+            process.wait()
+
             if progress_callback:
                 progress_callback(100)
 
-            if log_callback:
-                if result.returncode == 0:
-                    log_callback("Finished successfully.")
-                else:
-                    log_callback("Download failed.")
-
-            if result.returncode == 0:
+            if process.returncode == 0:
                 return True, "Download completed successfully."
 
             return False, "Download failed."
@@ -63,4 +92,3 @@ class Downloader:
 
         except Exception as e:
             return False, str(e)
-        
